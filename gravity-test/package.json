@@ -1,0 +1,12 @@
+{
+    "dependencies": {
+        "langeroids": "jletellier/langeroids",
+        "box2d.js": "1.0.0"
+    },
+    "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-contrib-concat": "~0.3.0",
+        "grunt-contrib-watch": "~0.6.1",
+        "grunt-browserify": "~2.1.3"
+    }
+}
