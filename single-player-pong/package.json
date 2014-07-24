@@ -1,0 +1,9 @@
+{
+    "dependencies": {
+        "langeroids": "jletellier/langeroids"
+    },
+    "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-browserify": "~2.1.3"
+    }
+}
