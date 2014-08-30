@@ -1,6 +1,5 @@
 var langeroids = require('langeroids');
 var _ = langeroids._;
-var Timer = require('langeroids/lib/timer');
 
 var defaults = {
     width: 230,
@@ -18,16 +17,14 @@ var GroundEntity = module.exports = function(settings) {
 };
 
 _.extend(GroundEntity.prototype, {
-    onInit: function(game) {
-        this.physics = game.getComponent('physics');
+    onInit: function() {
+        this.physics = this.getComponent('physics');
+        this.animationLoop = this.getComponent('animation-loop');
         this.shapes = [];
 
         this.createBody();
 
-        this.colorChangeTimer = new Timer({
-            game: game,
-            tDuration: this.colorChangeInterval
-        });
+        this.colorChangeTimer = this.animationLoop.getTimer(this.colorChangeInterval);
     },
 
     createBody: function() {
@@ -81,10 +78,9 @@ _.extend(GroundEntity.prototype, {
     },
 
     onUpdate: function() {
-        if (this.colorChangeTimer.done()) {
+        if (this.colorChangeTimer.done(true)) {
             if (this.currentHColor == 360 || this.currentHColor == 0) this.currentHColorDirection *= -1;
             this.currentHColor += this.currentHColorDirection;
-            this.colorChangeTimer.repeat();
         }
     },
 

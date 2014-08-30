@@ -1,6 +1,5 @@
 var langeroids = require('langeroids');
 var _ = langeroids._;
-var Timer = require('langeroids/lib/timer');
 
 var GroundEntity = require('./ground-entity');
 var BulletEntity = require('./bullet-entity');
@@ -22,27 +21,28 @@ var MainLogic = module.exports = function(settings) {
 };
 
 _.extend(MainLogic.prototype, {
-    onInit: function(game) {
-        this.em = game.getComponent('entityManager');
+    onInit: function() {
+        this.em = this.getComponent('entity-manager');
         this.em.add(new GroundEntity());
 
+        var animationLoop = this.getComponent('animation-loop');
+
         // timers for generated entities
-        this.bulletColorChangeTimer = new Timer({ game: game, tDuration: this.BULLET_COLOR_CHANGE_INTERVAL });
-        this.bulletTimer = new Timer({ game: game, tDuration: this.BULLET_SPAWN_INTERVAL });
-        this.bulletTimer2 = new Timer({ game: game, tDuration: this.BULLET_SPAWN_INTERVAL + 120 });
+        this.bulletColorChangeTimer = animationLoop.getTimer(this.BULLET_COLOR_CHANGE_INTERVAL);
+        this.bulletTimer = animationLoop.getTimer(this.BULLET_SPAWN_INTERVAL);
+        this.bulletTimer2 = animationLoop.getTimer(this.BULLET_SPAWN_INTERVAL + 120);
 
         this.currentBulletColor = _.random(4, this.BULLET_COLORS.length - 1);
     },
 
     onUpdate: function() {
         // change bullet color
-        if (this.bulletColorChangeTimer.done()) {
+        if (this.bulletColorChangeTimer.done(true)) {
             this.currentBulletColor = _.random(0, this.BULLET_COLORS.length - 1);
-            this.bulletColorChangeTimer.repeat();
         }
 
         // throw bullets
-        if (this.bulletTimer.done()) {
+        if (this.bulletTimer.done(true)) {
             this.em.add(new BulletEntity({
                 posX: -5,
                 posY: 50,
@@ -50,10 +50,8 @@ _.extend(MainLogic.prototype, {
                 forceY: _.random(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
                 color: this.BULLET_COLORS[this.currentBulletColor]
             }));
-
-            this.bulletTimer.repeat();
         }
-        if (this.bulletTimer2.done()) {
+        if (this.bulletTimer2.done(true)) {
             this.em.add(new BulletEntity({
                 posX: 305,
                 posY: 70,
@@ -61,8 +59,6 @@ _.extend(MainLogic.prototype, {
                 forceY: _.random(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
                 color: this.BULLET_COLORS[this.currentBulletColor]
             }));
-
-            this.bulletTimer2.repeat();
         }
     },
 

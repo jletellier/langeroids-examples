@@ -17,13 +17,11 @@ var BulletEntity = module.exports = function(settings) {
 };
 
 _.extend(BulletEntity.prototype, {
-    onInit: function(game) {
-        this.physics = game.getComponent('physics');
+    onInit: function() {
+        this.physics = this.getComponent('physics');
         this.createBody();
 
         this.body.ApplyForce(this.body.GetWorldVector(new this.physics.Box2D.b2Vec2(this.forceX, this.forceY)), this.body.GetWorldCenter());
-
-        return this;
     },
 
     createBody: function() {

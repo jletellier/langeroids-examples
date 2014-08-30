@@ -1,23 +1,25 @@
-var langeroids = require('langeroids');
-var Game = require('langeroids/lib/game');
+var ComponentManager = require('langeroids/lib/component-manager');
+var AnimationLoop = require('langeroids/lib/animation-loop');
 var Box2dPhysics = require('langeroids/lib/box-2d-physics');
 var Canvas2dRenderer = require('langeroids/lib/canvas-2d-renderer');
 var EntityManager = require('langeroids/lib/entity-manager');
 var MainLogic = require('../lib/main-logic');
 
-var game = new Game();
+var cm = new ComponentManager();
 
-game.addComponent(new Box2dPhysics());
+cm.add(new AnimationLoop());
 
-game.addComponent(new Canvas2dRenderer({
+cm.add(new Box2dPhysics());
+
+cm.add(new Canvas2dRenderer({
     canvas: 'canvas',
     width: 300,
     height: 100,
     scale: 3
 }));
 
-game.addComponent(new MainLogic());
+cm.add(new MainLogic());
 
-game.addComponent(new EntityManager());
+cm.add(new EntityManager());
 
-game.start();
+cm.init();

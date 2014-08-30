@@ -537,30 +537,32 @@ Hu.prototype.set_localAnchorB=function(a){xf(this.a,a.a)};Hu.prototype.set_bodyA
 Hu.prototype.set_collideConnected=function(a){Fg(this.a,a)};function Hu(){this.a=Xp();Hu.prototype.b[this.a]=this;this.c=Hu}Hu.prototype.b={};Module.b2RopeJointDef=Hu;Hu.prototype.set_maxLength=function(a){Uq(this.a,a)};this.Box2D=Module;Module.b2_staticBody=0;Module.b2_kinematicBody=1;Module.b2_dynamicBody=2;
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var langeroids = require('langeroids');
-var Game = require('langeroids/lib/game');
+var ComponentManager = require('langeroids/lib/component-manager');
+var AnimationLoop = require('langeroids/lib/animation-loop');
 var Box2dPhysics = require('langeroids/lib/box-2d-physics');
 var Canvas2dRenderer = require('langeroids/lib/canvas-2d-renderer');
 var EntityManager = require('langeroids/lib/entity-manager');
 var MainLogic = require('../lib/main-logic');
 
-var game = new Game();
+var cm = new ComponentManager();
 
-game.addComponent(new Box2dPhysics());
+cm.add(new AnimationLoop());
 
-game.addComponent(new Canvas2dRenderer({
+cm.add(new Box2dPhysics());
+
+cm.add(new Canvas2dRenderer({
     canvas: 'canvas',
     width: 300,
     height: 100,
     scale: 3
 }));
 
-game.addComponent(new MainLogic());
+cm.add(new MainLogic());
 
-game.addComponent(new EntityManager());
+cm.add(new EntityManager());
 
-game.start();
-},{"../lib/main-logic":4,"langeroids":7,"langeroids/lib/box-2d-physics":8,"langeroids/lib/canvas-2d-renderer":9,"langeroids/lib/entity-manager":10,"langeroids/lib/game":11}],2:[function(require,module,exports){
+cm.init();
+},{"../lib/main-logic":4,"langeroids/lib/animation-loop":8,"langeroids/lib/box-2d-physics":9,"langeroids/lib/canvas-2d-renderer":10,"langeroids/lib/component-manager":11,"langeroids/lib/entity-manager":12}],2:[function(require,module,exports){
 var langeroids = require('langeroids');
 var _ = langeroids._;
 
@@ -580,13 +582,11 @@ var BulletEntity = module.exports = function(settings) {
 };
 
 _.extend(BulletEntity.prototype, {
-    onInit: function(game) {
-        this.physics = game.getComponent('physics');
+    onInit: function() {
+        this.physics = this.getComponent('physics');
         this.createBody();
 
         this.body.ApplyForce(this.body.GetWorldVector(new this.physics.Box2D.b2Vec2(this.forceX, this.forceY)), this.body.GetWorldCenter());
-
-        return this;
     },
 
     createBody: function() {
@@ -642,7 +642,6 @@ _.extend(BulletEntity.prototype, {
 },{"langeroids":7}],3:[function(require,module,exports){
 var langeroids = require('langeroids');
 var _ = langeroids._;
-var Timer = require('langeroids/lib/timer');
 
 var defaults = {
     width: 230,
@@ -660,16 +659,14 @@ var GroundEntity = module.exports = function(settings) {
 };
 
 _.extend(GroundEntity.prototype, {
-    onInit: function(game) {
-        this.physics = game.getComponent('physics');
+    onInit: function() {
+        this.physics = this.getComponent('physics');
+        this.animationLoop = this.getComponent('animation-loop');
         this.shapes = [];
 
         this.createBody();
 
-        this.colorChangeTimer = new Timer({
-            game: game,
-            tDuration: this.colorChangeInterval
-        });
+        this.colorChangeTimer = this.animationLoop.getTimer(this.colorChangeInterval);
     },
 
     createBody: function() {
@@ -723,10 +720,9 @@ _.extend(GroundEntity.prototype, {
     },
 
     onUpdate: function() {
-        if (this.colorChangeTimer.done()) {
+        if (this.colorChangeTimer.done(true)) {
             if (this.currentHColor == 360 || this.currentHColor == 0) this.currentHColorDirection *= -1;
             this.currentHColor += this.currentHColorDirection;
-            this.colorChangeTimer.repeat();
         }
     },
 
@@ -754,10 +750,9 @@ _.extend(GroundEntity.prototype, {
         ctx.fillRect(this.posX + shape.x, this.posY + shape.y, shape.w, shape.h);
     }
 });
-},{"langeroids":7,"langeroids/lib/timer":13}],4:[function(require,module,exports){
+},{"langeroids":7}],4:[function(require,module,exports){
 var langeroids = require('langeroids');
 var _ = langeroids._;
-var Timer = require('langeroids/lib/timer');
 
 var GroundEntity = require('./ground-entity');
 var BulletEntity = require('./bullet-entity');
@@ -779,27 +774,28 @@ var MainLogic = module.exports = function(settings) {
 };
 
 _.extend(MainLogic.prototype, {
-    onInit: function(game) {
-        this.em = game.getComponent('entityManager');
+    onInit: function() {
+        this.em = this.getComponent('entity-manager');
         this.em.add(new GroundEntity());
 
+        var animationLoop = this.getComponent('animation-loop');
+
         // timers for generated entities
-        this.bulletColorChangeTimer = new Timer({ game: game, tDuration: this.BULLET_COLOR_CHANGE_INTERVAL });
-        this.bulletTimer = new Timer({ game: game, tDuration: this.BULLET_SPAWN_INTERVAL });
-        this.bulletTimer2 = new Timer({ game: game, tDuration: this.BULLET_SPAWN_INTERVAL + 120 });
+        this.bulletColorChangeTimer = animationLoop.getTimer(this.BULLET_COLOR_CHANGE_INTERVAL);
+        this.bulletTimer = animationLoop.getTimer(this.BULLET_SPAWN_INTERVAL);
+        this.bulletTimer2 = animationLoop.getTimer(this.BULLET_SPAWN_INTERVAL + 120);
 
         this.currentBulletColor = _.random(4, this.BULLET_COLORS.length - 1);
     },
 
     onUpdate: function() {
         // change bullet color
-        if (this.bulletColorChangeTimer.done()) {
+        if (this.bulletColorChangeTimer.done(true)) {
             this.currentBulletColor = _.random(0, this.BULLET_COLORS.length - 1);
-            this.bulletColorChangeTimer.repeat();
         }
 
         // throw bullets
-        if (this.bulletTimer.done()) {
+        if (this.bulletTimer.done(true)) {
             this.em.add(new BulletEntity({
                 posX: -5,
                 posY: 50,
@@ -807,10 +803,8 @@ _.extend(MainLogic.prototype, {
                 forceY: _.random(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
                 color: this.BULLET_COLORS[this.currentBulletColor]
             }));
-
-            this.bulletTimer.repeat();
         }
-        if (this.bulletTimer2.done()) {
+        if (this.bulletTimer2.done(true)) {
             this.em.add(new BulletEntity({
                 posX: 305,
                 posY: 70,
@@ -818,8 +812,6 @@ _.extend(MainLogic.prototype, {
                 forceY: _.random(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
                 color: this.BULLET_COLORS[this.currentBulletColor]
             }));
-
-            this.bulletTimer2.repeat();
         }
     },
 
@@ -827,7 +819,7 @@ _.extend(MainLogic.prototype, {
         renderer.clear('rgb(0,0,0)');
     }
 });
-},{"./bullet-entity":2,"./ground-entity":3,"langeroids":7,"langeroids/lib/timer":13}],5:[function(require,module,exports){
+},{"./bullet-entity":2,"./ground-entity":3,"langeroids":7}],5:[function(require,module,exports){
 
 },{}],6:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
@@ -1137,7 +1129,55 @@ function isUndefined(arg) {
 },{}],7:[function(require,module,exports){
 module.exports = require('./lib/langeroids');
 
-},{"./lib/langeroids":12}],8:[function(require,module,exports){
+},{"./lib/langeroids":13}],8:[function(require,module,exports){
+var langeroids = require('./langeroids');
+var _ = langeroids._;
+var Timer = require('./timer');
+
+var defaults = {
+    id: 'animation-loop',
+    autoStart: true,
+    time: null
+};
+
+var AnimationLoop = module.exports = function(settings) {
+    _.extend(this, defaults, settings);
+};
+
+_.extend(AnimationLoop.prototype, {
+    start: function() {
+        this.startLoop();
+    },
+
+    startLoop: function() {
+        var self = this;
+        function animationLoop(time) {
+            self.requestId = requestAnimationFrame(animationLoop);
+            var run = (self.time > 0);
+            self.time = time;
+            if (run) self.run();
+        }
+        this.requestId = requestAnimationFrame(animationLoop);
+    },
+
+    stop: function() {
+        cancelAnimationFrame(this.requestId);
+    },
+
+    run: function() {
+        this.emit('update');
+    },
+
+    onInit: function(cm) {
+        this.cm = cm;
+        if (this.autoStart) this.start();
+    },
+
+    getTimer: function(settings) {
+        return new Timer(settings, this);
+    }
+});
+},{"./langeroids":13,"./timer":14}],9:[function(require,module,exports){
 var langeroids = require('./langeroids');
 var _ = langeroids._;
 
@@ -1159,8 +1199,7 @@ var Box2dPhysics = module.exports = function(settings) {
 };
 
 _.extend(Box2dPhysics.prototype, {
-    onInit: function(game) {
-        this.game = game;
+    onInit: function() {
         this.world = new this.Box2D.b2World(new this.Box2D.b2Vec2(0.0, this.gravity));
     },
 
@@ -1168,7 +1207,7 @@ _.extend(Box2dPhysics.prototype, {
         this.world.Step(1 / 60, 3, 2);
     }
 });
-},{"./langeroids":12,"box2d.js":5}],9:[function(require,module,exports){
+},{"./langeroids":13,"box2d.js":5}],10:[function(require,module,exports){
 var langeroids = require('langeroids');
 var _ = langeroids._;
 
@@ -1186,9 +1225,7 @@ var Canvas2dRenderer = module.exports = function(settings) {
 };
 
 _.extend(Canvas2dRenderer.prototype, {
-    onInit: function(game) {
-        this.game = game;
-
+    onInit: function() {
         if (_.isString(this.canvas)) {
             this.canvas = document.getElementById(this.canvas);
         }
@@ -1197,7 +1234,7 @@ _.extend(Canvas2dRenderer.prototype, {
     },
 
     onUpdate: function() {
-        this.game.emit('draw', this);
+        this.emit('draw', this);
     },
 
     resize: function(width, height, scale) {
@@ -1226,13 +1263,156 @@ _.extend(Canvas2dRenderer.prototype, {
         this.ctx.restore();
     }
 });
-},{"langeroids":7}],10:[function(require,module,exports){
+},{"langeroids":7}],11:[function(require,module,exports){
 var langeroids = require('./langeroids');
 var _ = langeroids._;
 
 var defaults = {
-    id: 'entityManager',
+    id: 'component-manager',
+    initialized: false
+};
 
+var ComponentManager = module.exports = function(settings) {
+    _.extend(this, defaults, settings);
+
+    this.setMaxListeners(0);
+    this.components = [];
+    this.componentsMap = {};
+    this.workers = [];
+};
+
+langeroids.inherits(ComponentManager, langeroids.EventEmitter);
+var Parent = ComponentManager.super_;
+
+_.extend(ComponentManager.prototype, {
+    emit: function(type, args, transferables, callerId) {
+        Parent.prototype.emit.apply(this, [ type, args, callerId ]);
+
+        // emit to workers
+        if (!_.isArray(transferables)) transferables = [];
+        var workerArgs = args;
+        for (var i = 0; i < this.workers.length; i++) {
+            var worker = this.workers[i];
+            if (worker._listeners[type] === true) {
+                if (type === 'init') workerArgs = null;
+                worker.postMessage({ type: type, args: workerArgs, callerId: callerId }, transferables);
+            }
+        }
+
+        // emit default event
+        Parent.prototype.emit.apply(this, [ 'default', type, args, callerId ]);
+    },
+
+    init: function() {
+        this.sort();
+        this.removeAllListeners();
+
+        var components = this.components;
+        for (var i = 0; i < components.length; i++) {
+            if (!components[i].useConcurrency) {
+                langeroids.setComponentListeners(this, components[i], true);
+            }
+        }
+
+        this.emit('init', this, null, this.id);
+        this.initialized = true;
+    },
+
+    add: function(component) {
+        langeroids.findComponentListeners(component);
+
+        this.setComponentMethods(component);
+
+        this.components.push(component);
+        if (_.isString(component.id)) this.componentsMap[component.id] = component;
+
+        if (component.useConcurrency) {
+            this.createWorker(component);
+        }
+
+        if (this.initialized) this.init();
+    },
+
+    setComponentMethods: function(component) {
+        var self = this;
+        if (!(component instanceof langeroids.EventEmitter)) {
+            component.emit = function(type, args, transferables) {
+                self.emit.apply(self, [ type, args, transferables, this.id ]);
+            };
+        }
+        component.getComponent = function(id) {
+            return self.getById(id);
+        };
+    },
+
+    sort: function() {
+        this.components = _.sortBy(this.components, 'sortIndex');
+    },
+
+    getById: function(component) {
+        if (_.isString(component)) {
+            return this.componentsMap[component];
+        }
+        return false;
+    },
+
+    workerMessageEvent: function(event) {
+        this.emit(event.data.type, event.data.args, null, event.target._componentId);
+    },
+
+    createWorker: function(component) {
+        component = (_.isString(component)) ? this.componentsMap[component] : component;
+
+        // convert component members (properties, functions) to strings
+        var prototypeStr = 'Class.prototype.';
+        var members = [];
+        _.each(_.keys(component), function(value) {
+            if (_.isFunction(component[value])) {
+                members.push(prototypeStr + value + '=' + component[value].toString());
+            }
+            else {
+                members.push(prototypeStr + value + '=' + JSON.stringify(component[value]));
+            }
+        });
+
+        // create worker message events
+        var workerMessageStr = function() {
+            var component = new Class();
+            component.emit = function(type, args, transferables) {
+                self.postMessage({ type: type, args: args }, transferables);
+            };
+            self.addEventListener('message', function(event) {
+                var type = event.data.type;
+                type = 'on' + type.charAt(0).toUpperCase() + type.slice(1);
+                // TODO: include once
+                if (typeof component[type] === 'function') component[type](event.data.args, event.data.callerId);
+            }, false);
+        }.toString();
+
+        // create final BLOB
+        var blob = new Blob([
+            'var Class = function() {};',
+            members.join(';'), ';',
+            '(', workerMessageStr, ')()'
+        ], { type: 'application/javascript' });
+        var blobURL = URL.createObjectURL(blob);
+
+        var worker = new Worker(blobURL);
+        worker._listeners = component._listeners;
+        worker._componentId = component.id;
+        this.workers.push(worker);
+
+        worker.addEventListener('message', this.workerMessageEvent.bind(this), false);
+
+        URL.revokeObjectURL(blobURL);
+    }
+});
+},{"./langeroids":13}],12:[function(require,module,exports){
+var langeroids = require('./langeroids');
+var _ = langeroids._;
+
+var defaults = {
+    id: 'entity-manager',
     initialized: false
 };
 
@@ -1250,8 +1430,7 @@ _.extend(EntityManager.prototype, {
         this.emit.apply(this, Array.prototype.slice.call(arguments, 0));
     },
 
-    onInit: function(game) {
-        this.game = game;
+    onInit: function() {
         this.initialized = true;
     },
 
@@ -1267,17 +1446,29 @@ _.extend(EntityManager.prototype, {
             var self = this;
             this.entities = _.filter(this.entities, function(entity) {
                 if (entity.killed) {
-                    langeroids.removeComponentListener(self, entity);
+                    langeroids.removeComponentListeners(self, entity);
                 }
                 return (!entity.killed);
             });
         }
     },
 
+    setEntityMethods: function(entity) {
+        var self = this;
+        entity.emit = function(type, args) {
+            self.emit.apply(self, arguments);
+        };
+        entity.getComponent = function(id) {
+            return self.getComponent(id);
+        };
+    },
+
     add: function(entity) {
         this.entities.push(entity);
-        langeroids.setComponentListener(this, entity);
-        if (this.initialized && _.isFunction(entity.onInit)) entity.onInit(this.game);
+        this.setEntityMethods(entity);
+        langeroids.findComponentListeners(entity);
+        langeroids.setComponentListeners(this, entity);
+        if (this.initialized && _.isFunction(entity.onInit)) entity.onInit();
     },
 
     sort: function() {
@@ -1285,86 +1476,7 @@ _.extend(EntityManager.prototype, {
         // TODO: sort event listener
     }
 });
-},{"./langeroids":12}],11:[function(require,module,exports){
-var langeroids = require('./langeroids');
-var _ = langeroids._;
-
-var defaults = {
-    initialized: false
-};
-
-var Game = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
-
-    this.components = [];
-    this.componentsMap = {};
-};
-
-langeroids.inherits(Game, langeroids.EventEmitter);
-
-_.extend(Game.prototype, {
-    start: function() {
-        this.init();
-        this.startLoop();
-    },
-
-    startLoop: function() {
-        var self = this;
-        function animationLoop(time) {
-            self.requestId = requestAnimationFrame(animationLoop);
-            self.time = time;
-            self.run();
-        }
-        this.requestId = requestAnimationFrame(animationLoop);
-    },
-
-    stop: function() {
-        cancelAnimationFrame(this.requestId);
-        this.initialized = false;
-    },
-
-    run: function() {
-        this.emit('update');
-    },
-
-    emit: function(type) {
-        Game.super_.prototype.emit.apply(this, arguments);
-        var args = Array.prototype.slice.call(arguments, 0);
-        args.unshift('default');
-        Game.super_.prototype.emit.apply(this, args);
-    },
-
-    init: function() {
-        this.sortComponents();
-        this.removeAllListeners();
-
-        var components = this.components;
-        for (var i = 0; i < components.length; i++) {
-            langeroids.setComponentListener(this, components[i]);
-        }
-
-        this.emit('init', this);
-        this.initialized = true;
-    },
-
-    addComponent: function(component) {
-        this.components.push(component);
-        if (_.isString(component.id)) this.componentsMap[component.id] = component;
-        if (this.initialized) this.init();
-    },
-
-    sortComponents: function() {
-        this.components = _.sortBy(this.components, 'sortIndex');
-    },
-
-    getComponent: function(component) {
-        if (_.isString(component)) {
-            return this.componentsMap[component];
-        }
-        return false;
-    }
-});
-},{"./langeroids":12}],12:[function(require,module,exports){
+},{"./langeroids":13}],13:[function(require,module,exports){
 (function (global){
 // Set root to the global context (window in the browser)
 var root = global;
@@ -1424,64 +1536,90 @@ if (exports.browser) {
         };
 }());
 
-exports.setComponentListener = function(parent, component) {
+exports.findComponentListeners = function(component) {
     var _ = exports._;
+    var listeners = component._listeners = {};
+    var onceListeners = component._onceListeners = {};
     _.each(_.functions(component), function(value) {
         if (value.indexOf('on', 0) === 0) {
             var once = (value.indexOf('once', 0) === 0);
             var type = value.substr(once ? 4 : 2);
             if (type.length > 0) {
                 type = type.substr(0, 1).toLowerCase() + type.substr(1);
-                if (!_.isArray(component.listener)) component.listener = {};
-                var boundListener = component[value].bind(component);
-                component.listener[type] = boundListener;
-                parent[once ? 'once' : 'on'](type, boundListener);
+                listeners[type] = true;
+                if (once) onceListeners[type] = true;
             }
         }
     });
 };
 
-exports.removeComponentListener = function(parent, component, types) {
+exports.setComponentListeners = function(parent, component, force) {
     var _ = exports._;
-    types = types || _.keys(component.listener);
+    var listeners = component._listeners;
+    var onceListeners = component._onceListeners;
+    _.each(listeners, function(value, key) {
+        if ((force && value) || value === true) {
+            var fnPrefix = onceListeners[key] ? 'once' : 'on';
+            var fnName = fnPrefix + key.substr(0, 1).toUpperCase() + key.substr(1);
+            var boundListener = component[fnName].bind(component);
+            listeners[key] = boundListener;
+            parent[fnPrefix](key, boundListener);
+        }
+    });
+};
+
+exports.removeComponentListeners = function(parent, component, types) {
+    var _ = exports._;
+    var listeners = component._listeners;
+    types = types || _.keys(component._listeners);
     for (var i = 0; i < types.length; i++) {
-        parent.removeListener(types[i], component.listener[types[i]]);
+        var type = types[i];
+        if (listeners[type]) {
+            parent.removeListener(types[i], listeners[type]);
+            listeners[type] = true;
+        }
     }
 };
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"events":6,"inherits":14,"underscore":15}],13:[function(require,module,exports){
+},{"events":6,"inherits":15,"underscore":16}],14:[function(require,module,exports){
 var langeroids = require('./langeroids');
 var _ = langeroids._;
 
 var defaults = {
-    game: null,
+    animationLoop: null,
     tStart: null,
     tDuration: 0
 };
 
-var Timer = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
+var Timer = module.exports = function(settings, animationLoop) {
+    _.extend(this, defaults);
+    if (!_.isUndefined(animationLoop)) this.animationLoop = animationLoop;
+
+    if (_.isObject(settings)) _.extend(this, settings);
+    else if (_.isNumber(settings)) this.set(settings);
 };
 
 _.extend(Timer.prototype, {
     set: function(duration) {
-        this.tStart = this.game.time;
+        this.tStart = this.animationLoop.time;
         this.tDuration = duration || this.tDuration;
     },
 
     remaining: function() {
-        return this.tDuration - (this.game.time - this.tStart);
+        return this.tDuration - (this.animationLoop.time - this.tStart);
     },
 
     repeat: function() {
-        this.tStart = this.game.time;
+        this.tStart = this.animationLoop.time;
     },
 
-    done: function() {
-        return (this.remaining() <= 0);
+    done: function(repeat) {
+        var done = (this.remaining() <= 0);
+        if (done && repeat) this.repeat();
+        return done;
     }
 });
-},{"./langeroids":12}],14:[function(require,module,exports){
+},{"./langeroids":13}],15:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -1506,7 +1644,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors

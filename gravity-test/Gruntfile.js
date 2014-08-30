@@ -24,6 +24,9 @@ module.exports = function(grunt) {
         },
 
         concat: {
+            options: {
+                //sourceMap: true
+            },
             'build/app.js': [
                 'node_modules/box2d.js/box2d.js',
                 '<%= browserify.client.dest %>'

@@ -1,18 +1,20 @@
-var langeroids = require('langeroids');
-var Game = require('langeroids/lib/game');
+var ComponentManager = require('langeroids/lib/component-manager');
+var AnimationLoop = require('langeroids/lib/animation-loop');
 var Canvas2dRenderer = require('langeroids/lib/canvas-2d-renderer');
 
-var game = new Game();
+var cm = new ComponentManager();
 
-game.addComponent(new Canvas2dRenderer({
+cm.add(new AnimationLoop());
+
+cm.add(new Canvas2dRenderer({
     canvas: 'canvas'
 }));
 
-game.addComponent({
+cm.add({
     onceDraw: function(renderer) {
         renderer.clear();
         renderer.drawText(10, 15, 'Hello, World!');
     }
 });
 
-game.start();
+cm.init();
