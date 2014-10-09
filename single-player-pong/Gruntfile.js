@@ -12,19 +12,32 @@ module.exports = function(grunt) {
                 src: [ '<%= browserify.client.src %>' ],
                 dest: '<%= browserify.client.dest %>',
                 options: {
-                    bundleOptions: {
+                    browserifyOptions: {
                         debug: true
-                    },
-                    watch: true,
-                    keepAlive: true
+                    }
+                }
+            }
+        },
+
+        watch: {
+            app: {
+                files: [
+                    'client/**/*.js',
+                    'lib/**/*.js',
+                    'index.html'
+                ],
+                tasks: [ 'browserify:clientDev' ],
+                options: {
+                    livereload: true
                 }
             }
         }
     });
 
+    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-browserify');
 
     grunt.registerTask('default', [ 'browserify:client' ]);
-    grunt.registerTask('dev', [ 'browserify:clientDev' ]);
+    grunt.registerTask('dev', [ 'browserify:clientDev', 'watch' ]);
 
 };

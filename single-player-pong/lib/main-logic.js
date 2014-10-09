@@ -1,40 +1,42 @@
 var langeroids = require('langeroids');
-var _ = langeroids._;
-var Timer = require('langeroids/lib/timer');
+var THREE = require('three');
 
 var PedalEntity = require('./pedal-entity');
 var BallEntity = require('./ball-entity');
 
 var defaults = {
+    id: 'main-logic',
 
+    width: 10,
+    height: 10
 };
 
-var MainLogic = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
-};
+var proto = {
+    onInit: function() {
+        this.pedalEntity = new PedalEntity();
+        this.ballEntity = new BallEntity();
 
-_.extend(MainLogic.prototype, {
-    onInit: function(game) {
-        this.pedal = new PedalEntity();
-        this.ball = new BallEntity();
+        this.initThree();
+
+        this.em = this.getComponent('entity-manager');
+        this.em.add(this.pedalEntity);
+        this.em.add(this.ballEntity);
+    },
+
+    initThree: function() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.OrthographicCamera(-this.width, this.width, this.height, -this.height, 1, 1000);
+
+        var renderer = this.renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        this.camera.position.z = 5;
     },
 
     onUpdate: function() {
-        this.ball.onUpdate();
-    },
-
-    onKeydown: function(input) {
-        if (input.lastKey === 37) {
-            this.pedal.moveLeft();
-        }
-        else if (input.lastKey === 39) {
-            this.pedal.moveRight();
-        }
-    },
-
-    onDraw: function(renderer) {
-        renderer.clear('rgb(0,0,0)');
-        this.pedal.onDraw(renderer);
-        this.ball.onDraw(renderer);
+        this.renderer.render(this.scene, this.camera);
     }
-});
+};
+
+module.exports = langeroids.createComponent(defaults, proto);

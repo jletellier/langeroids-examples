@@ -1,9 +1,12 @@
 {
     "dependencies": {
-        "langeroids": "jletellier/langeroids"
+        "langeroids": "jletellier/langeroids",
+        "underscore": "1.7.0",
+        "three": "0.66.4"
     },
     "devDependencies": {
-        "grunt": "~0.4.1",
-        "grunt-browserify": "~2.1.3"
+        "grunt": "~0.4.5",
+        "grunt-contrib-watch": "~0.6.1",
+        "grunt-browserify": "~3.0.1"
     }
 }

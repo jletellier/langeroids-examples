@@ -1,31 +1,64 @@
 var langeroids = require('langeroids');
-var _ = langeroids._;
-var Timer = require('langeroids/lib/timer');
+var THREE = require('three');
 
 var defaults = {
-    radius: 8,
-    posX: 196,
-    posY: 0
+    radius: 0.5,
+    posX: 0,
+    posY: 9,
+    speed: 0.09,
+    velX: 0,
+    velY: 0
 };
 
-var PedalEntity = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
-};
+var proto = {
+    onInit: function() {
+        this.mainLogic = this.getComponent('main-logic');
+        this.scene = this.mainLogic.scene;
 
-_.extend(PedalEntity.prototype, {
-    onInit: function(game) {
-        this.posX = Math.random() * (400 - this.radius * 2) + this.radius;
+        var geometry = new THREE.CircleGeometry(this.radius, 32);
+        var material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        this.circle = new THREE.Mesh(geometry, material);
+
+        this.scene.add(this.circle);
+
+        var dir = Math.PI + (Math.random() * Math.PI);
+        this.velX = Math.cos(dir) * this.speed;
+        this.velY = Math.sin(dir) * this.speed;
     },
 
     onUpdate: function() {
-        this.posY += 1;
+        this.move();
+
+        this.circle.position.x = this.posX;
+        this.circle.position.y = this.posY;
     },
 
-    onDraw: function(renderer) {
-        var ctx = renderer.ctx;
-        ctx.fillStyle = 'rgba(154,50,15,0.8)';
-        ctx.beginPath();
-        ctx.arc(this.posX + this.radius, this.posY + this.radius, this.radius, 0, 2 * Math.PI, true);
-        ctx.fill();
+    move: function() {
+        this.posX += this.velX;
+        this.posY += this.velY;
+
+        var xMin = -this.mainLogic.width + this.radius;
+        var xMax = this.mainLogic.width - this.radius;
+        var yMin = -this.mainLogic.height + this.radius;
+        var yMax = this.mainLogic.height - this.radius;
+
+        if (this.posX < xMin || this.posX > xMax) this.velX = -this.velX;
+        if (this.posY < yMin || this.posY > yMax) this.velY = -this.velY;
+
+        if (this.posX < xMin) {
+            this.posX = xMin;
+        }
+        else if (this.posX > xMax) {
+            this.posX = xMax;
+        }
+
+        if (this.posY < yMin) {
+            this.posY = yMin;
+        }
+        else if (this.posY > yMax) {
+            this.posY = yMax;
+        }
     }
-});
+};
+
+module.exports = langeroids.createComponent(defaults, proto);
