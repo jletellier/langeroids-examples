@@ -13,10 +13,10 @@ var defaults = {
 };
 
 var BulletEntity = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
+    _.assign(this, defaults, settings);
 };
 
-_.extend(BulletEntity.prototype, {
+_.assign(BulletEntity.prototype, {
     onInit: function() {
         this.physics = this.getComponent('physics');
         this.createBody();

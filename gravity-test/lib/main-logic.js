@@ -1,6 +1,10 @@
 var langeroids = require('langeroids');
 var _ = langeroids._;
 
+_.assign(_, { 
+    random: require('lodash/number/random')
+});
+
 var GroundEntity = require('./ground-entity');
 var BulletEntity = require('./bullet-entity');
 
@@ -17,10 +21,10 @@ var defaults = {
 };
 
 var MainLogic = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
+    _.assign(this, defaults, settings);
 };
 
-_.extend(MainLogic.prototype, {
+_.assign(MainLogic.prototype, {
     onInit: function() {
         this.em = this.getComponent('entity-manager');
         this.em.add(new GroundEntity());
