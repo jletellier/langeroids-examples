@@ -1,7 +1,7 @@
 {
     "dependencies": {
         "langeroids": "jletellier/langeroids",
-        "underscore": "1.7.0",
+        "lodash": "3.7.0",
         "three": "0.66.4"
     },
     "devDependencies": {

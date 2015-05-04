@@ -7,16 +7,16 @@ var defaults = {
     height: 8,
     forceX: 120,
     forceY: -240,
-    color: '0,0,128',
+    color: 0x000080,
 
     BULLET_OPACITY: 0.8
 };
 
 var BulletEntity = module.exports = function(settings) {
-    _.assign(this, defaults, settings);
+    _.extend(this, defaults, settings);
 };
 
-_.assign(BulletEntity.prototype, {
+_.extend(BulletEntity.prototype, {
     onInit: function() {
         this.physics = this.getComponent('physics');
         this.createBody();
@@ -64,13 +64,9 @@ _.assign(BulletEntity.prototype, {
         this.killed = true;
     },
 
-    onDraw: function(renderer) {
-        var ctx = renderer.ctx;
-
+    onDraw: function(graphics) {
         // draw bullet
-        ctx.fillStyle = 'rgba('+ this.color +','+ this.BULLET_OPACITY +')';
-        ctx.beginPath();
-        ctx.arc(this.posX + this.radius, this.posY + this.radius, this.radius, 0, 2 * Math.PI, true);
-        ctx.fill();
+        graphics.beginFill(this.color, this.BULLET_OPACITY);
+        graphics.drawCircle(this.posX + this.radius, this.posY + this.radius, this.radius);
     }
 });

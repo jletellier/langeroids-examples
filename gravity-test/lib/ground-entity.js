@@ -7,16 +7,16 @@ var defaults = {
     posX: 35,
     posY: 50,
 
-    currentHColorDirection: -1,
+    currentHColorDirection: -0.004,
     currentHColor: 0,
     colorChangeInterval: 100
 };
 
 var GroundEntity = module.exports = function(settings) {
-    _.assign(this, defaults, settings);
+    _.extend(this, defaults, settings);
 };
 
-_.assign(GroundEntity.prototype, {
+_.extend(GroundEntity.prototype, {
     onInit: function() {
         this.physics = this.getComponent('physics');
         this.animationLoop = this.getComponent('animation-loop');
@@ -79,32 +79,82 @@ _.assign(GroundEntity.prototype, {
 
     onUpdate: function() {
         if (this.colorChangeTimer.done(true)) {
-            if (this.currentHColor == 360 || this.currentHColor == 0) this.currentHColorDirection *= -1;
+            if (this.currentHColor >= 1 || this.currentHColor <= 0) this.currentHColorDirection *= -1;
             this.currentHColor += this.currentHColorDirection;
         }
     },
 
-    onDraw: function(renderer) {
-        renderer.ctx.fillStyle = 'hsla('+ this.currentHColor +',61%,56%,0.5)';
+    onDraw: function(graphics) {
+        var fillColor = hslToHex(this.currentHColor, 0.61, 0.56);
 
         for (var i = 0; i < this.shapes.length; i++) {
+            graphics.beginFill(fillColor, 0.5);
             var shape = this.shapes[i];
-            if (shape.type == 0) this.drawCircle(renderer, shape);
-            else if (shape.type == 2) this.drawPolygon(renderer, shape);
+            if (shape.type == 0) this.drawCircle(graphics, shape);
+            else if (shape.type == 2) this.drawPolygon(graphics, shape);
         }
     },
 
-    drawCircle: function(renderer, shape) {
-        var ctx = renderer.ctx;
-
-        ctx.beginPath();
-        ctx.arc(this.posX + shape.x, this.posY + shape.y, shape.radius, 0, 2 * Math.PI, false);
-        ctx.fill();
+    drawCircle: function(graphics, shape) {
+        graphics.drawCircle(this.posX + shape.x, this.posY + shape.y, shape.radius);
     },
 
-    drawPolygon: function(renderer, shape) {
-        var ctx = renderer.ctx;
-
-        ctx.fillRect(this.posX + shape.x, this.posY + shape.y, shape.w, shape.h);
+    drawPolygon: function(graphics, shape) {
+        graphics.drawRect(this.posX + shape.x, this.posY + shape.y, shape.w, shape.h);
     }
 });
+
+function hslToHex(h, s, l) {
+    var rgb = hslToRgb(h, s, l);
+    return '0x' + decimalToHex(rgb[0]) + decimalToHex(rgb[1]) + decimalToHex(rgb[2]);
+}
+
+/**
+ * Converts an HSL color value to RGB. Conversion formula
+ * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+ * Assumes h, s, and l are contained in the set [0, 1] and
+ * returns r, g, and b in the set [0, 255].
+ *
+ * @param   Number  h       The hue
+ * @param   Number  s       The saturation
+ * @param   Number  l       The lightness
+ * @return  Array           The RGB representation
+ */
+function hslToRgb(h, s, l) {
+    var r, g, b;
+
+    if(s == 0){
+        r = g = b = l; // achromatic
+    }else{
+        var hue2rgb = function hue2rgb(p, q, t){
+            if(t < 0) t += 1;
+            if(t > 1) t -= 1;
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        }
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+/**
+ * Copied from: http://stackoverflow.com/a/57807
+ */
+function decimalToHex(d, padding) {
+    var hex = Number(d).toString(16);
+    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+
+    while (hex.length < padding) {
+        hex = "0" + hex;
+    }
+
+    return hex;
+}

@@ -1,9 +1,7 @@
 var langeroids = require('langeroids');
 var _ = langeroids._;
 
-_.assign(_, { 
-    random: require('lodash/number/random')
-});
+var PIXI = require('pixi.js');
 
 var GroundEntity = require('./ground-entity');
 var BulletEntity = require('./bullet-entity');
@@ -11,7 +9,7 @@ var BulletEntity = require('./bullet-entity');
 var defaults = {
     BULLET_SPAWN_INTERVAL: 1800,
     BULLET_COLOR_CHANGE_INTERVAL: 8000,
-    BULLET_COLORS: [ '30,144,255', '60,179,113', '218,165,32', '138,43,226', '205,0,0' ],
+    BULLET_COLORS: [ '0x1e90ff', '0x3cb371', '0xdaa520', '0x8a2be2', '0xcd0000' ],
     BULLET_MIN_FORCE_X: 120,
     BULLET_MAX_FORCE_X: 320,
     BULLET_MIN_FORCE_Y: -240,
@@ -21,11 +19,15 @@ var defaults = {
 };
 
 var MainLogic = module.exports = function(settings) {
-    _.assign(this, defaults, settings);
+    _.extend(this, defaults, settings);
 };
 
-_.assign(MainLogic.prototype, {
+_.extend(MainLogic.prototype, {
     onInit: function() {
+        this.renderer = new PIXI.WebGLRenderer(300, 100);
+        document.body.appendChild(this.renderer.view);
+        this.graphics = new PIXI.Graphics();
+
         this.em = this.getComponent('entity-manager');
         this.em.add(new GroundEntity());
 
@@ -64,9 +66,9 @@ _.assign(MainLogic.prototype, {
                 color: this.BULLET_COLORS[this.currentBulletColor]
             }));
         }
-    },
 
-    onDraw: function(renderer) {
-        renderer.clear('rgb(0,0,0)');
+        this.graphics.clear();
+        this.emit('draw', this.graphics);
+        this.renderer.render(this.graphics);
     }
 });

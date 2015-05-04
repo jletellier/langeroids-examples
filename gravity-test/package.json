@@ -2,6 +2,7 @@
     "dependencies": {
         "langeroids": "jletellier/langeroids",
         "lodash": "3.7.0",
+        "pixi.js": "3.0.2",
         "box2d.js": "1.0.0"
     },
     "devDependencies": {
