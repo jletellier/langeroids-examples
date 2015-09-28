@@ -1,4 +1,5 @@
-var langeroids = require('langeroids');
+'use strict';
+
 var ComponentManager = require('langeroids/lib/component-manager');
 var AnimationLoop = require('langeroids/lib/animation-loop');
 
@@ -11,8 +12,9 @@ cm.add({
         console.log('Hello, Langeroids!');
     },
 
+    // TODO: Fixme, this will never get called!
     onUpdate: function() {
-        
+        console.log('Call me, please!');
     }
 });
 
