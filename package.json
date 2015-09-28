@@ -1,0 +1,15 @@
+{
+    "scripts": {
+        "install": "node node_modules/.bin/webpack -p",
+        "start": "node node_modules/.bin/webpack-dev-server --inline",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "langeroids": "jletellier/langeroids",
+        "lodash": "~3.10.1"
+    },
+    "devDependencies": {
+        "webpack": "~1.12.2",
+        "webpack-dev-server": "~1.12.0"
+    }
+}
