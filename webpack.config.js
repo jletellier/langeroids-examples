@@ -4,6 +4,7 @@ var path = require('path');
 
 var config = {
     entry: {
+        'dummy-pong': './dummy-pong/client/main.js',
         'gravity-test': './gravity-test/client/main.js',
         'hello-world': './hello-world/client/main.js'
     },

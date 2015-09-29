@@ -2,10 +2,10 @@ var langeroids = require('langeroids');
 var THREE = require('three');
 
 var defaults = {
-    radius: 0.5,
+    radius: 1.0,
     posX: 0,
     posY: 9,
-    speed: 0.09,
+    speed: 0.2,
     velX: 0,
     velY: 0
 };

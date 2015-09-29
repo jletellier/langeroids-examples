@@ -2,10 +2,10 @@ var langeroids = require('langeroids');
 var THREE = require('three');
 
 var defaults = {
-    width: 4,
+    width: 6,
     height: 2,
     posX: 0,
-    posY: -10,
+    posY: -20,
     step: 0.7
 };
 
@@ -26,13 +26,12 @@ var proto = {
         this.plane.position.y = this.posY;
     },
 
-    onKeydown: function(lastKey) {
-        if (lastKey === 37) {
-            this.move(-1);
-        }
-        else if (lastKey === 39) {
-            this.move(1);
-        }
+    onMoveLeft: function() {
+        this.move(-1);
+    },
+
+    onMoveRight: function() {
+        this.move(1);
     },
 
     move: function(dir) {
