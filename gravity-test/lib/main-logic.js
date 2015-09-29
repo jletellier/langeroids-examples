@@ -1,5 +1,4 @@
-var langeroids = require('langeroids');
-var _ = langeroids._;
+'use strict';
 
 var PIXI = require('pixi.js');
 
@@ -18,11 +17,11 @@ var defaults = {
     currentBulletColor: 0
 };
 
-var MainLogic = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
+var MainLogic = function(settings) {
+    Object.assign(this, defaults, settings);
 };
 
-_.extend(MainLogic.prototype, {
+Object.assign(MainLogic.prototype, {
     onInit: function() {
         this.renderer = new PIXI.WebGLRenderer(300, 100);
         document.body.appendChild(this.renderer.view);
@@ -38,13 +37,13 @@ _.extend(MainLogic.prototype, {
         this.bulletTimer = animationLoop.getTimer(this.BULLET_SPAWN_INTERVAL);
         this.bulletTimer2 = animationLoop.getTimer(this.BULLET_SPAWN_INTERVAL + 120);
 
-        this.currentBulletColor = _.random(4, this.BULLET_COLORS.length - 1);
+        this.currentBulletColor = getRandomInt(4, this.BULLET_COLORS.length - 1);
     },
 
     onUpdate: function() {
         // change bullet color
         if (this.bulletColorChangeTimer.done(true)) {
-            this.currentBulletColor = _.random(0, this.BULLET_COLORS.length - 1);
+            this.currentBulletColor = getRandomInt(0, this.BULLET_COLORS.length - 1);
         }
 
         // throw bullets
@@ -52,8 +51,8 @@ _.extend(MainLogic.prototype, {
             this.em.add(new BulletEntity({
                 posX: -5,
                 posY: 50,
-                forceX: _.random(this.BULLET_MIN_FORCE_X, this.BULLET_MAX_FORCE_X),
-                forceY: _.random(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
+                forceX: getRandomInt(this.BULLET_MIN_FORCE_X, this.BULLET_MAX_FORCE_X),
+                forceY: getRandomInt(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
                 color: this.BULLET_COLORS[this.currentBulletColor]
             }));
         }
@@ -61,8 +60,8 @@ _.extend(MainLogic.prototype, {
             this.em.add(new BulletEntity({
                 posX: 305,
                 posY: 70,
-                forceX: _.random(-this.BULLET_MIN_FORCE_X, -this.BULLET_MAX_FORCE_X),
-                forceY: _.random(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
+                forceX: getRandomInt(-this.BULLET_MIN_FORCE_X, -this.BULLET_MAX_FORCE_X),
+                forceY: getRandomInt(this.BULLET_MIN_FORCE_Y, this.BULLET_MAX_FORCE_Y),
                 color: this.BULLET_COLORS[this.currentBulletColor]
             }));
         }
@@ -72,3 +71,13 @@ _.extend(MainLogic.prototype, {
         this.renderer.render(this.graphics);
     }
 });
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive)
+ * Using Math.round() will give a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+module.exports = MainLogic;

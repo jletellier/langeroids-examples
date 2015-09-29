@@ -1,12 +1,14 @@
 {
     "scripts": {
-        "install": "node node_modules/.bin/webpack -p",
         "start": "node node_modules/.bin/webpack-dev-server --inline",
+        "deploy": "NODE_ENV=production node node_modules/.bin/webpack -p",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
+        "box2d.js": "1.0.0",
         "langeroids": "jletellier/langeroids",
-        "lodash": "~3.10.1"
+        "lodash": "~3.10.1",
+        "pixi.js": "~3.0.7"
     },
     "devDependencies": {
         "webpack": "~1.12.2",

@@ -1,5 +1,4 @@
-var langeroids = require('langeroids');
-var _ = langeroids._;
+'use strict';
 
 var defaults = {
     width: 230,
@@ -12,11 +11,11 @@ var defaults = {
     colorChangeInterval: 100
 };
 
-var GroundEntity = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
+var GroundEntity = function(settings) {
+    Object.assign(this, defaults, settings);
 };
 
-_.extend(GroundEntity.prototype, {
+Object.assign(GroundEntity.prototype, {
     onInit: function() {
         this.physics = this.getComponent('physics');
         this.animationLoop = this.getComponent('animation-loop');
@@ -158,3 +157,5 @@ function decimalToHex(d, padding) {
 
     return hex;
 }
+
+module.exports = GroundEntity;

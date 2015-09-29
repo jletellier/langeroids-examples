@@ -1,5 +1,4 @@
-var langeroids = require('langeroids');
-var _ = langeroids._;
+'use strict';
 
 var defaults = {
     radius: 4,
@@ -12,11 +11,11 @@ var defaults = {
     BULLET_OPACITY: 0.8
 };
 
-var BulletEntity = module.exports = function(settings) {
-    _.extend(this, defaults, settings);
+var BulletEntity = function(settings) {
+    Object.assign(this, defaults, settings);
 };
 
-_.extend(BulletEntity.prototype, {
+Object.assign(BulletEntity.prototype, {
     onInit: function() {
         this.physics = this.getComponent('physics');
         this.createBody();
@@ -70,3 +69,5 @@ _.extend(BulletEntity.prototype, {
         graphics.drawCircle(this.posX + this.radius, this.posY + this.radius, this.radius);
     }
 });
+
+module.exports = BulletEntity;
